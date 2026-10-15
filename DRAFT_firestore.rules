@@ -1,0 +1,304 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // =========================================================================
+    // Global Hardened Security Primitives & Tenant Isolation Functions
+    // =========================================================================
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isSignedIn() {
+      return request.auth != null && request.auth.uid != null;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // Fetches the authenticated user profile document to derive tenant boundaries
+    function userProfile() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function getUserClinicId() {
+      return userProfile().clinicId;
+    }
+
+    function isClinicAdmin() {
+      return isSignedIn() && userProfile().role == 'admin';
+    }
+
+    // Verifies that a target document belongs strictly to the user's active facility
+    function isTenantResource() {
+      return isSignedIn() && resource.data.clinicId == getUserClinicId();
+    }
+
+    // Verifies that an incoming document is stamped with the user's assigned clinicId
+    function isTenantIncoming() {
+      return isSignedIn() && incoming().clinicId == getUserClinicId();
+    }
+
+    // Catalog accessibility: baseline system templates (clinicId == '') OR facility-specific records
+    function isCatalogReadable() {
+      return isSignedIn() && (resource.data.clinicId == '' || resource.data.clinicId == getUserClinicId());
+    }
+
+    // Connection ping test
+    match /_connection_test/{docId} {
+      allow read, write: if true;
+    }
+
+    // =========================================================================
+    // Clinics & Facility Registry
+    // =========================================================================
+    match /clinics/{clinicId} {
+      allow get, list: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(clinicId);
+      allow update: if isSignedIn() && isValidId(clinicId) && (isClinicAdmin() && getUserClinicId() == clinicId);
+      allow delete: if false; // Clinic records cannot be arbitrarily deleted
+    }
+
+    // =========================================================================
+    // Staff & User Accounts
+    // =========================================================================
+    match /users/{userId} {
+      allow get: if isSignedIn() && isValidId(userId) && (userId == request.auth.uid || resource.data.clinicId == getUserClinicId());
+      allow list: if isSignedIn() && (resource.data.clinicId == getUserClinicId());
+      allow create: if isSignedIn() && isValidId(userId) && (userId == request.auth.uid || isClinicAdmin());
+      allow update: if isSignedIn() && isValidId(userId) && (
+        (userId == request.auth.uid && incoming().clinicId == existing().clinicId) ||
+        (isClinicAdmin() && existing().clinicId == getUserClinicId())
+      );
+      allow delete: if isSignedIn() && isValidId(userId) && isClinicAdmin() && existing().clinicId == getUserClinicId() && userId != request.auth.uid;
+    }
+
+    // =========================================================================
+    // Tenant Clinical & Medical Data Collections (Strict Facility Isolation)
+    // =========================================================================
+
+    // Patients
+    match /patients/{patientId} {
+      allow get: if isValidId(patientId) && isTenantResource();
+      allow list: if isTenantResource();
+      allow create: if isValidId(patientId) && isTenantIncoming();
+      allow update: if isValidId(patientId) && isTenantResource() && incoming().clinicId == existing().clinicId;
+      allow delete: if isValidId(patientId) && isTenantResource() && isClinicAdmin();
+    }
+
+    // Clinical Encounters & Consultations
+    match /encounters/{encounterId} {
+      allow get: if isValidId(encounterId) && isTenantResource();
+      allow list: if isTenantResource();
+      allow create: if isValidId(encounterId) && isTenantIncoming();
+      allow update: if isValidId(encounterId) && isTenantResource() && incoming().clinicId == existing().clinicId;
+      allow delete: if false; // Encounters are immutable clinical records
+    }
+
+    // Prescriptions & Medication Orders
+    match /prescriptions/{rxId} {
+      allow get: if isValidId(rxId) && isTenantResource();
+      allow list: if isTenantResource();
+      allow create: if isValidId(rxId) && isTenantIncoming();
+      allow update: if isValidId(rxId) && isTenantResource() && incoming().clinicId == existing().clinicId;
+      allow delete: if isValidId(rxId) && isTenantResource() && isClinicAdmin();
+    }
+
+    // Lab & Diagnostic Test Orders
+    match /testOrders/{testId} {
+      allow get: if isValidId(testId) && isTenantResource();
+      allow list: if isTenantResource();
+      allow create: if isValidId(testId) && isTenantIncoming();
+      allow update: if isValidId(testId) && isTenantResource() && incoming().clinicId == existing().clinicId;
+      allow delete: if isValidId(testId) && isTenantResource() && isClinicAdmin();
+    }
+
+    // Radiology & Imaging Orders
+    match /radiologyOrders/{radId} {
+      allow get: if isValidId(radId) && isTenantResource();
+      allow list: if isTenantResource();
+      allow create: if isValidId(radId) && isTenantIncoming();
+      allow update: if isValidId(radId) && isTenantResource() && incoming().clinicId == existing().clinicId;
+      allow delete: if isValidId(radId) && isTenantResource() && isClinicAdmin();
+    }
+
+    // Nursing Administered Items & Medication Administration Logs
+    match /administeredItems/{adminId} {
+      allow get: if isValidId(adminId) && isTenantResource();
+      allow list: if isTenantResource();
+      allow create: if isValidId(adminId) && isTenantIncoming();
+      allow update: if isValidId(adminId) && isTenantResource() && incoming().clinicId == existing().clinicId;
+      allow delete: if isValidId(adminId) && isTenantResource() && isClinicAdmin();
+    }
+
+    match /nursingAdminLogs/{logId} {
+      allow get: if isValidId(logId) && isTenantResource();
+      allow list: if isTenantResource();
+      allow create: if isValidId(logId) && isTenantIncoming();
+      allow update: if isValidId(logId) && isTenantResource() && incoming().clinicId == existing().clinicId;
+      allow delete: if isValidId(logId) && isTenantResource() && isClinicAdmin();
+    }
+
+    // Inpatient Treatment Charts (MAR)
+    match /treatmentCharts/{chartId} {
+      allow get: if isValidId(chartId) && isTenantResource();
+      allow list: if isTenantResource();
+      allow create: if isValidId(chartId) && isTenantIncoming();
+      allow update: if isValidId(chartId) && isTenantResource() && incoming().clinicId == existing().clinicId;
+      allow delete: if isValidId(chartId) && isTenantResource() && isClinicAdmin();
+    }
+
+    // Discharge Summaries
+    match /dischargeSummaries/{summaryId} {
+      allow get: if isValidId(summaryId) && isTenantResource();
+      allow list: if isTenantResource();
+      allow create: if isValidId(summaryId) && isTenantIncoming();
+      allow update: if isValidId(summaryId) && isTenantResource() && incoming().clinicId == existing().clinicId;
+      allow delete: if isValidId(summaryId) && isTenantResource() && isClinicAdmin();
+    }
+
+    // Patient Referrals
+    match /referrals/{referralId} {
+      allow get: if isValidId(referralId) && isTenantResource();
+      allow list: if isTenantResource();
+      allow create: if isValidId(referralId) && isTenantIncoming();
+      allow update: if isValidId(referralId) && isTenantResource() && incoming().clinicId == existing().clinicId;
+      allow delete: if isValidId(referralId) && isTenantResource() && isClinicAdmin();
+    }
+
+    // Death Certificates (MCCD)
+    match /deathCertificates/{certId} {
+      allow get: if isValidId(certId) && isTenantResource();
+      allow list: if isTenantResource();
+      allow create: if isValidId(certId) && isTenantIncoming();
+      allow update: if isValidId(certId) && isTenantResource() && incoming().clinicId == existing().clinicId;
+      allow delete: if false; // Vital records cannot be destroyed
+    }
+
+    // Clinical Procedures & Minor Surgeries
+    match /clinicalProcedures/{procedureId} {
+      allow get: if isValidId(procedureId) && isTenantResource();
+      allow list: if isTenantResource();
+      allow create: if isValidId(procedureId) && isTenantIncoming();
+      allow update: if isValidId(procedureId) && isTenantResource() && incoming().clinicId == existing().clinicId;
+      allow delete: if isValidId(procedureId) && isTenantResource() && isClinicAdmin();
+    }
+
+    // Pharmacy Carts
+    match /pharmacyCarts/{cartId} {
+      allow get: if isValidId(cartId) && isTenantResource();
+      allow list: if isTenantResource();
+      allow create: if isValidId(cartId) && isTenantIncoming();
+      allow update: if isValidId(cartId) && isTenantResource() && incoming().clinicId == existing().clinicId;
+      allow delete: if isValidId(cartId) && isTenantResource() && isClinicAdmin();
+    }
+
+    // Patient Ledgers & Financial Billing
+    match /ledgers/{ledgerId} {
+      allow get: if isValidId(ledgerId) && isTenantResource();
+      allow list: if isTenantResource();
+      allow create: if isValidId(ledgerId) && isTenantIncoming();
+      allow update: if isValidId(ledgerId) && isTenantResource() && incoming().clinicId == existing().clinicId;
+      allow delete: if false; // Financial records are immutable
+    }
+
+    // Pharmacy & Medical Inventory
+    match /inventory/{itemId} {
+      allow get: if isValidId(itemId) && isTenantResource();
+      allow list: if isTenantResource();
+      allow create: if isValidId(itemId) && isTenantIncoming();
+      allow update: if isValidId(itemId) && isTenantResource() && incoming().clinicId == existing().clinicId;
+      allow delete: if isValidId(itemId) && isTenantResource() && isClinicAdmin();
+    }
+
+    // Inventory Transfers
+    match /transfers/{transferId} {
+      allow get: if isValidId(transferId) && isTenantResource();
+      allow list: if isTenantResource();
+      allow create: if isValidId(transferId) && isTenantIncoming();
+      allow update: if isValidId(transferId) && isTenantResource() && incoming().clinicId == existing().clinicId;
+      allow delete: if isValidId(transferId) && isTenantResource() && isClinicAdmin();
+    }
+
+    // Audit Logs
+    match /auditLogs/{logId} {
+      allow get: if isValidId(logId) && isTenantResource();
+      allow list: if isTenantResource();
+      allow create: if isValidId(logId) && isTenantIncoming();
+      allow update, delete: if false; // Audit logs are append-only
+    }
+
+    // =========================================================================
+    // Facility Catalogs (Readable if Baseline clinicId == '' OR matches Tenant)
+    // =========================================================================
+
+    // Available Diagnostic Tests
+    match /availableTests/{testId} {
+      allow get: if isValidId(testId) && isCatalogReadable();
+      allow list: if isCatalogReadable();
+      allow create: if isValidId(testId) && isTenantIncoming();
+      allow update: if isValidId(testId) && isTenantResource() && incoming().clinicId == existing().clinicId;
+      allow delete: if isValidId(testId) && isTenantResource() && isClinicAdmin();
+    }
+
+    // Procedure Inventory Catalog
+    match /procedureInventory/{procId} {
+      allow get: if isValidId(procId) && isCatalogReadable();
+      allow list: if isCatalogReadable();
+      allow create: if isValidId(procId) && isTenantIncoming();
+      allow update: if isValidId(procId) && isTenantResource() && incoming().clinicId == existing().clinicId;
+      allow delete: if isValidId(procId) && isTenantResource() && isClinicAdmin();
+    }
+
+    // Clinic Wards
+    match /wards/{wardId} {
+      allow get: if isValidId(wardId) && isCatalogReadable();
+      allow list: if isCatalogReadable();
+      allow create: if isValidId(wardId) && isTenantIncoming();
+      allow update: if isValidId(wardId) && isTenantResource() && incoming().clinicId == existing().clinicId;
+      allow delete: if isValidId(wardId) && isTenantResource() && isClinicAdmin();
+    }
+
+    // Clinic Departments
+    match /departments/{deptId} {
+      allow get: if isValidId(deptId) && isCatalogReadable();
+      allow list: if isCatalogReadable();
+      allow create: if isValidId(deptId) && isTenantIncoming();
+      allow update: if isValidId(deptId) && isTenantResource() && incoming().clinicId == existing().clinicId;
+      allow delete: if isValidId(deptId) && isTenantResource() && isClinicAdmin();
+    }
+
+    // Insurance Policies & Tariff Schemes
+    match /insurancePolicies/{policyId} {
+      allow get: if isValidId(policyId) && isCatalogReadable();
+      allow list: if isCatalogReadable();
+      allow create: if isValidId(policyId) && isTenantIncoming();
+      allow update: if isValidId(policyId) && isTenantResource() && incoming().clinicId == existing().clinicId;
+      allow delete: if isValidId(policyId) && isTenantResource() && isClinicAdmin();
+    }
+
+    // Other Service Charges
+    match /otherCharges/{chargeId} {
+      allow get: if isValidId(chargeId) && isCatalogReadable();
+      allow list: if isCatalogReadable();
+      allow create: if isValidId(chargeId) && isTenantIncoming();
+      allow update: if isValidId(chargeId) && isTenantResource() && incoming().clinicId == existing().clinicId;
+      allow delete: if isValidId(chargeId) && isTenantResource() && isClinicAdmin();
+    }
+
+    // Daily Clinic Expenditures & Cash Outflows
+    match /dailyExpenditures/{expId} {
+      allow get: if isValidId(expId) && isTenantResource();
+      allow list: if isTenantResource();
+      allow create: if isValidId(expId) && isTenantIncoming();
+      allow update: if isValidId(expId) && isTenantResource() && incoming().clinicId == existing().clinicId;
+      allow delete: if isValidId(expId) && isTenantResource() && isClinicAdmin();
+    }
+  }
+}

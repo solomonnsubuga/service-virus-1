@@ -1,0 +1,187 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Connection ping check
+    match /_connection_test/{docId} {
+      allow read, write: if true;
+    }
+
+    // Clinics Collection
+    match /clinics/{clinicId} {
+      allow get, list: if true;
+      allow create, update, delete: if isValidId(clinicId);
+    }
+
+    // Users / Staff Collection
+    match /users/{userId} {
+      allow get, list: if true;
+      allow create, update, delete: if isValidId(userId);
+    }
+
+    // Patients Collection
+    match /patients/{patientId} {
+      allow get, list: if true;
+      allow create, update, delete: if isValidId(patientId);
+    }
+
+    // Inventory Collection
+    match /inventory/{itemId} {
+      allow get, list: if true;
+      allow create, update, delete: if isValidId(itemId);
+    }
+
+    // Prescriptions Collection
+    match /prescriptions/{rxId} {
+      allow get, list: if true;
+      allow create, update, delete: if isValidId(rxId);
+    }
+
+    // Test Orders Collection
+    match /testOrders/{testId} {
+      allow get, list: if true;
+      allow create, update, delete: if isValidId(testId);
+    }
+
+    // Radiology Orders Collection
+    match /radiologyOrders/{radId} {
+      allow get, list: if true;
+      allow create, update, delete: if isValidId(radId);
+    }
+
+    // Administered Items Collection
+    match /administeredItems/{adminId} {
+      allow get, list: if true;
+      allow create, update, delete: if isValidId(adminId);
+    }
+
+    // Patient Ledgers Collection
+    match /ledgers/{ledgerId} {
+      allow get, list: if true;
+      allow create, update, delete: if isValidId(ledgerId);
+    }
+
+    // Stock Transfers Collection
+    match /transfers/{transferId} {
+      allow get, list: if true;
+      allow create, update, delete: if isValidId(transferId);
+    }
+
+    // Clinical Encounters Collection
+    match /encounters/{encounterId} {
+      allow get, list: if true;
+      allow create, update, delete: if isValidId(encounterId);
+    }
+
+    // Clinical Procedures Collection
+    match /clinicalProcedures/{procedureId} {
+      allow get, list: if true;
+      allow create, update, delete: if isValidId(procedureId);
+    }
+
+    // Audit Logs Collection
+    match /auditLogs/{logId} {
+      allow get, list: if true;
+      allow create, update, delete: if isValidId(logId);
+    }
+
+    // Available Diagnostic Tests & Scans Catalog
+    match /availableTests/{testId} {
+      allow get, list: if true;
+      allow create, update, delete: if isValidId(testId);
+    }
+
+    // Clinic Wards Collection
+    match /wards/{wardId} {
+      allow get, list: if true;
+      allow create, update, delete: if isValidId(wardId);
+    }
+
+    // Clinic Departments Collection
+    match /departments/{deptId} {
+      allow get, list: if true;
+      allow create, update, delete: if isValidId(deptId);
+    }
+
+    // Pharmacy Carts Collection
+    match /pharmacyCarts/{cartId} {
+      allow get, list: if true;
+      allow create, update, delete: if isValidId(cartId);
+    }
+
+    // Nursing Administration Logs Collection
+    match /nursingAdminLogs/{logId} {
+      allow get, list: if true;
+      allow create, update, delete: if isValidId(logId);
+    }
+
+    // Other Charges & Fees Catalog
+    match /otherCharges/{chargeId} {
+      allow get, list: if true;
+      allow create, update, delete: if isValidId(chargeId);
+    }
+
+    // Inpatient Treatment Charts & MAR Checklists
+    match /treatmentCharts/{chartId} {
+      allow get, list: if true;
+      allow create, update, delete: if isValidId(chartId);
+    }
+
+    // Inpatient Discharge Summaries & Discharge Orders
+    match /dischargeSummaries/{summaryId} {
+      allow get, list: if true;
+      allow create, update, delete: if isValidId(summaryId);
+    }
+
+    // Inpatient Patient Referrals & Hospital Transfers
+    match /referrals/{referralId} {
+      allow get, list: if true;
+      allow create, update, delete: if isValidId(referralId);
+    }
+
+    // Medical Certificates of Cause of Death & Deceased Records
+    match /deathCertificates/{certId} {
+      allow get, list: if true;
+      allow create, update, delete: if isValidId(certId);
+    }
+
+    // Email Logs & Dispatch Records
+    match /emailLogs/{emailId} {
+      allow get, list: if true;
+      allow create, update, delete: if isValidId(emailId);
+    }
+
+    // Insurance Policies & Pricing Schemes Collection
+    match /insurancePolicies/{policyId} {
+      allow get, list: if true;
+      allow create, update, delete: if isValidId(policyId);
+    }
+
+    // Master Procedure Inventory & Insurance Tariffs Collection
+    match /procedureInventory/{itemId} {
+      allow get, list: if true;
+      allow create, update, delete: if isValidId(itemId);
+    }
+
+    // Daily Clinic Expenditures Collection
+    match /dailyExpenditures/{expId} {
+      allow get, list: if true;
+      allow create, update, delete: if isValidId(expId);
+    }
+
+    // Developer Console Configuration & Telemetry Collection
+    match /developerConfig/{docId} {
+      allow get, list: if true;
+      allow create, update, delete: if isValidId(docId);
+    }
+
+    // Global default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

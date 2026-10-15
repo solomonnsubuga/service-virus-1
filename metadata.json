@@ -1,0 +1,6 @@
+{
+  "name": "OmniClinic Multi-Branch HMS & Inventory ERP",
+  "description": "Multi-tenant healthcare management system supporting stand-alone clinic facilities with strict data safety, network isolation, role-based dashboards, and private patient ledgers.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

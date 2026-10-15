@@ -1,0 +1,585 @@
+{
+  "entities": {
+    "Clinic": {
+      "title": "Clinic Facility",
+      "description": "Healthcare facility branch in Clinic-Sync Portal",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 150 },
+        "code": { "type": "string", "maxLength": 30 },
+        "address": { "type": "string", "maxLength": 300 },
+        "phone": { "type": "string", "maxLength": 50 },
+        "email": { "type": "string", "maxLength": 120 },
+        "color": { "type": "string", "maxLength": 20 },
+        "adminName": { "type": "string", "maxLength": 150 },
+        "adminPassword": { "type": "string", "maxLength": 150 },
+        "currency": { "type": "string", "maxLength": 15 },
+        "currencySymbol": { "type": "string", "maxLength": 20 },
+        "currencyName": { "type": "string", "maxLength": 80 },
+        "currencyDecimals": { "type": "number" },
+        "currencyPosition": { "type": "string", "maxLength": 10 },
+        "status": { "type": "boolean" },
+        "approved": { "type": "boolean" },
+        "userLimitTier": { "type": "string", "maxLength": 30 },
+        "userLimit": { "type": "number" },
+        "isVerified": { "type": "boolean" },
+        "createdAt": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["id", "name", "code", "email"]
+    },
+    "User": {
+      "title": "Clinic User & Staff",
+      "description": "Hospital staff member with role and clearance level",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 150 },
+        "email": { "type": "string", "maxLength": 120 },
+        "password": { "type": "string", "maxLength": 120 },
+        "role": { "type": "string", "maxLength": 30 },
+        "roles": {
+          "type": "array",
+          "items": { "type": "string", "maxLength": 30 },
+          "maxItems": 3
+        },
+        "assignedRoles": {
+          "type": "array",
+          "items": { "type": "string", "maxLength": 30 },
+          "maxItems": 3
+        },
+        "requestedRoles": {
+          "type": "array",
+          "items": { "type": "string", "maxLength": 30 },
+          "maxItems": 3
+        },
+        "clearanceLevel": { "type": "number" },
+        "clinicId": { "type": "string", "maxLength": 128 },
+        "title": { "type": "string", "maxLength": 150 },
+        "status": { "type": "string", "maxLength": 30 },
+        "requestedRole": { "type": "string", "maxLength": 30 },
+        "requestedAt": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["id", "name", "email", "role", "clinicId"]
+    },
+    "Patient": {
+      "title": "Patient Record",
+      "description": "Patient registered at a clinic branch",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "clinicId": { "type": "string", "maxLength": 128 },
+        "mrn": { "type": "string", "maxLength": 50 },
+        "name": { "type": "string", "maxLength": 150 },
+        "dob": { "type": "string", "maxLength": 30 },
+        "gender": { "type": "string", "maxLength": 20 },
+        "phone": { "type": "string", "maxLength": 50 },
+        "status": { "type": "string", "maxLength": 30 },
+        "admissionType": { "type": "string", "maxLength": 30 },
+        "ward": { "type": "string", "maxLength": 80 },
+        "bedNumber": { "type": "string", "maxLength": 30 },
+        "balance": { "type": "number" }
+      },
+      "required": ["id", "clinicId", "mrn", "name"]
+    },
+    "InventoryItem": {
+      "title": "Inventory SKU Item",
+      "description": "Stock batch or consumable tracked per clinic",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "clinicId": { "type": "string", "maxLength": 128 },
+        "itemCode": { "type": "string", "maxLength": 50 },
+        "name": { "type": "string", "maxLength": 150 },
+        "category": { "type": "string", "maxLength": 50 },
+        "totalQuantity": { "type": "number" },
+        "unit": { "type": "string", "maxLength": 30 },
+        "reorderLevel": { "type": "number" },
+        "sellingPrice": { "type": "number" },
+        "unitCost": { "type": "number" }
+      },
+      "required": ["id", "clinicId", "name", "totalQuantity"]
+    },
+    "Prescription": {
+      "title": "Patient Prescription",
+      "description": "Prescription order issued to a patient",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "clinicId": { "type": "string", "maxLength": 128 },
+        "patientId": { "type": "string", "maxLength": 128 },
+        "doctorId": { "type": "string", "maxLength": 128 },
+        "overallStatus": { "type": "string", "maxLength": 30 },
+        "createdAt": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["id", "clinicId", "patientId"]
+    },
+    "TestOrder": {
+      "title": "Pathology Test Order",
+      "description": "Diagnostic laboratory test order",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "clinicId": { "type": "string", "maxLength": 128 },
+        "patientId": { "type": "string", "maxLength": 128 },
+        "testName": { "type": "string", "maxLength": 150 },
+        "status": { "type": "string", "maxLength": 30 },
+        "orderedAt": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["id", "clinicId", "patientId", "testName"]
+    },
+    "RadiologyOrder": {
+      "title": "Radiology Order",
+      "description": "Imaging and radiology order",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "clinicId": { "type": "string", "maxLength": 128 },
+        "patientId": { "type": "string", "maxLength": 128 },
+        "scanType": { "type": "string", "maxLength": 100 },
+        "status": { "type": "string", "maxLength": 30 },
+        "orderedAt": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["id", "clinicId", "patientId", "scanType"]
+    },
+    "AdministeredItem": {
+      "title": "Administered Item",
+      "description": "Nursing administered medication or consumable",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "clinicId": { "type": "string", "maxLength": 128 },
+        "patientId": { "type": "string", "maxLength": 128 },
+        "inventoryItemId": { "type": "string", "maxLength": 128 },
+        "quantity": { "type": "number" },
+        "administeredAt": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["id", "clinicId", "patientId", "inventoryItemId"]
+    },
+    "PatientLedger": {
+      "title": "Patient Ledger",
+      "description": "Billing charges and ledger transactions for patient",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "clinicId": { "type": "string", "maxLength": 128 },
+        "patientId": { "type": "string", "maxLength": 128 },
+        "totalBilled": { "type": "number" },
+        "totalPaid": { "type": "number" },
+        "balance": { "type": "number" }
+      },
+      "required": ["id", "clinicId", "patientId"]
+    },
+    "InterBranchTransfer": {
+      "title": "Inter-Branch Stock Transfer",
+      "description": "Transfers of medication/stock between clinics",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "fromClinicId": { "type": "string", "maxLength": 128 },
+        "toClinicId": { "type": "string", "maxLength": 128 },
+        "status": { "type": "string", "maxLength": 30 },
+        "requestedAt": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["id", "fromClinicId", "toClinicId"]
+    },
+    "ClinicalEncounter": {
+      "title": "Clinical Encounter",
+      "description": "Doctor consultation and clinical diagnosis encounter",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "clinicId": { "type": "string", "maxLength": 128 },
+        "patientId": { "type": "string", "maxLength": 128 },
+        "doctorId": { "type": "string", "maxLength": 128 },
+        "date": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["id", "clinicId", "patientId", "doctorId"]
+    },
+    "AuditLog": {
+      "title": "Security Audit Log",
+      "description": "Audit trail log event for compliance and tracking",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "clinicId": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "userName": { "type": "string", "maxLength": 150 },
+        "role": { "type": "string", "maxLength": 30 },
+        "action": { "type": "string", "maxLength": 100 },
+        "details": { "type": "string", "maxLength": 500 },
+        "timestamp": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["id", "clinicId", "action", "timestamp"]
+    },
+    "AvailableTest": {
+      "title": "Available Diagnostic Test Catalog",
+      "description": "Pathology laboratory and radiology imaging test catalog with expected outcomes and parameter reference ranges in series",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "clinicId": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 200 },
+        "code": { "type": "string", "maxLength": 50 },
+        "department": { "type": "string", "maxLength": 50 },
+        "category": { "type": "string", "maxLength": 50 },
+        "price": { "type": "number" },
+        "insurancePrices": { "type": "object" },
+        "turnaroundTime": { "type": "string", "maxLength": 100 },
+        "sampleOrBodyPart": { "type": "string", "maxLength": 150 },
+        "description": { "type": "string", "maxLength": 500 },
+        "isActive": { "type": "boolean" },
+        "resultType": { "type": "string", "maxLength": 50 },
+        "expectedOutcome": { "type": "string", "maxLength": 100 },
+        "parameters": { "type": "array" },
+        "createdAt": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["id", "clinicId", "name", "code", "department", "category", "price", "isActive"]
+    },
+    "ClinicalProcedure": {
+      "title": "Clinical Procedure Record",
+      "description": "Performed minor surgery, trauma or clinical procedure record with outcomes and timestamps",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "clinicId": { "type": "string", "maxLength": 128 },
+        "patientId": { "type": "string", "maxLength": 128 },
+        "doctorId": { "type": "string", "maxLength": 128 },
+        "procedureName": { "type": "string", "maxLength": 200 },
+        "details": { "type": "string", "maxLength": 1000 },
+        "outcome": { "type": "string", "maxLength": 80 },
+        "cost": { "type": "number" },
+        "performedAt": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["id", "clinicId", "patientId", "doctorId", "procedureName", "outcome", "cost", "performedAt"]
+    },
+    "ProcedureInventoryItem": {
+      "title": "Procedure Inventory Item",
+      "description": "Master procedure catalog item with default cost and insurance tariffs",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "clinicId": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 200 },
+        "code": { "type": "string", "maxLength": 50 },
+        "category": { "type": "string", "maxLength": 80 },
+        "defaultCost": { "type": "number" },
+        "description": { "type": "string", "maxLength": 1000 },
+        "anesthesia": { "type": "string", "maxLength": 80 },
+        "isActive": { "type": "boolean" },
+        "createdAt": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["id", "clinicId", "name", "code", "defaultCost"]
+    },
+    "DailyExpenditure": {
+      "title": "Daily Expenditure",
+      "description": "Daily clinic expenditure record with itemized breakdown, quantities, costs, timestamp and user audit trail",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "clinicId": { "type": "string", "maxLength": 128 },
+        "title": { "type": "string", "maxLength": 200 },
+        "category": { "type": "string", "maxLength": 80 },
+        "date": { "type": "string", "maxLength": 30 },
+        "items": { "type": "array" },
+        "totalAmount": { "type": "number" },
+        "paymentMethod": { "type": "string", "maxLength": 50 },
+        "receiptOrVoucherNumber": { "type": "string", "maxLength": 100 },
+        "vendorOrPayee": { "type": "string", "maxLength": 150 },
+        "notes": { "type": "string", "maxLength": 1000 },
+        "enteredByUserId": { "type": "string", "maxLength": 128 },
+        "enteredByUserName": { "type": "string", "maxLength": 150 },
+        "enteredByUserRole": { "type": "string", "maxLength": 50 },
+        "createdAt": { "type": "string", "maxLength": 50 },
+        "updatedAt": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["id", "clinicId", "title", "category", "date", "items", "totalAmount", "enteredByUserId", "enteredByUserName", "createdAt"]
+    },
+    "ClinicWard": {
+      "title": "Clinic Inpatient Ward",
+      "description": "Inpatient ward and bed layout configuration",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "clinicId": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 150 },
+        "code": { "type": "string", "maxLength": 30 },
+        "building": { "type": "string", "maxLength": 100 },
+        "floor": { "type": "string", "maxLength": 50 },
+        "totalBeds": { "type": "number" },
+        "nurseInCharge": { "type": "string", "maxLength": 150 },
+        "isActive": { "type": "boolean" }
+      },
+      "required": ["id", "clinicId", "name", "code", "totalBeds", "isActive"]
+    },
+    "ClinicDepartment": {
+      "title": "Clinic Clinical Department",
+      "description": "Department and consultation room management",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "clinicId": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 150 },
+        "code": { "type": "string", "maxLength": 30 },
+        "headOfDepartment": { "type": "string", "maxLength": 150 },
+        "isActive": { "type": "boolean" }
+      },
+      "required": ["id", "clinicId", "name", "code", "isActive"]
+    },
+    "PharmacyCart": {
+      "title": "Pharmacy Dispensing Cart",
+      "description": "Direct and indirect pharmacy dispensing cart",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "cartNumber": { "type": "string", "maxLength": 50 },
+        "clinicId": { "type": "string", "maxLength": 128 },
+        "patientId": { "type": "string", "maxLength": 128 },
+        "patientName": { "type": "string", "maxLength": 150 },
+        "cartType": { "type": "string", "maxLength": 30 },
+        "status": { "type": "string", "maxLength": 50 },
+        "createdAt": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["id", "clinicId", "patientId", "cartType", "status", "createdAt"]
+    },
+    "NursingAdministrationLog": {
+      "title": "Nursing Medication Administration Log",
+      "description": "Bedside MAR administration and nursing consumable tracking record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "clinicId": { "type": "string", "maxLength": 128 },
+        "patientId": { "type": "string", "maxLength": 128 },
+        "patientName": { "type": "string", "maxLength": 150 },
+        "administeredBy": { "type": "string", "maxLength": 150 },
+        "administeredAt": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["id", "clinicId", "patientId", "administeredBy", "administeredAt"]
+    },
+    "OtherChargeItem": {
+      "title": "Other Charge Catalog Item",
+      "description": "Configurable clinic charge and fee definition for consultation, registration, admission, certificate, or custom service fee",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "clinicId": { "type": "string", "maxLength": 128 },
+        "description": { "type": "string", "maxLength": 200 },
+        "cost": { "type": "number" },
+        "insurancePrices": { "type": "object" },
+        "department": { "type": "string", "maxLength": 50 },
+        "category": { "type": "string", "maxLength": 80 },
+        "createdAt": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["id", "clinicId", "description", "cost"]
+    },
+    "PatientReferral": {
+      "title": "Patient Inpatient Referral",
+      "description": "Inpatient referral and external hospital transfer dossier",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "referralNumber": { "type": "string", "maxLength": 50 },
+        "clinicId": { "type": "string", "maxLength": 128 },
+        "patientId": { "type": "string", "maxLength": 128 },
+        "patientName": { "type": "string", "maxLength": 150 },
+        "patientMrn": { "type": "string", "maxLength": 50 },
+        "destinationHospital": { "type": "string", "maxLength": 200 },
+        "reasonForReferral": { "type": "string", "maxLength": 2000 },
+        "conditionBeforeReferral": { "type": "string", "maxLength": 500 },
+        "urgency": { "type": "string", "maxLength": 30 },
+        "referralDate": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["id", "clinicId", "patientId", "destinationHospital", "reasonForReferral", "conditionBeforeReferral"]
+    },
+    "DeathCertificate": {
+      "title": "Medical Certificate of Cause of Death",
+      "description": "Official medical death certificate, cause of death (MCCD) and body disposition",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "certificateNumber": { "type": "string", "maxLength": 50 },
+        "clinicId": { "type": "string", "maxLength": 128 },
+        "patientId": { "type": "string", "maxLength": 128 },
+        "patientName": { "type": "string", "maxLength": 150 },
+        "patientMrn": { "type": "string", "maxLength": 50 },
+        "dateOfDeath": { "type": "string", "maxLength": 30 },
+        "timeOfDeath": { "type": "string", "maxLength": 20 },
+        "immediateCause": { "type": "string", "maxLength": 500 },
+        "mannerOfDeath": { "type": "string", "maxLength": 50 },
+        "certifyingDoctorName": { "type": "string", "maxLength": 150 }
+      },
+      "required": ["id", "clinicId", "patientId", "dateOfDeath", "timeOfDeath", "immediateCause", "mannerOfDeath", "certifyingDoctorName"]
+    },
+    "InsurancePolicy": {
+      "title": "Insurance Policy & Coverage Scheme",
+      "description": "Available insurance policy name, tariff structure, and payer rules for a respective clinic",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "clinicId": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 150 },
+        "code": { "type": "string", "maxLength": 50 },
+        "category": { "type": "string", "maxLength": 50 },
+        "coveragePercentage": { "type": "number" },
+        "copayAmount": { "type": "number" },
+        "contactPhone": { "type": "string", "maxLength": 50 },
+        "contactEmail": { "type": "string", "maxLength": 120 },
+        "notes": { "type": "string", "maxLength": 500 },
+        "status": { "type": "string", "maxLength": 20 },
+        "createdAt": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["id", "clinicId", "name", "status"]
+    }
+  },
+  "firestore": {
+    "/clinics/{clinicId}": {
+      "schema": { "$ref": "Clinic" },
+      "description": "Registered clinic facilities"
+    },
+    "/users/{userId}": {
+      "schema": { "$ref": "User" },
+      "description": "Staff profiles and clearances"
+    },
+    "/patients/{patientId}": {
+      "schema": { "$ref": "Patient" },
+      "description": "Patient demographic and clinical records"
+    },
+    "/inventory/{inventoryId}": {
+      "schema": { "$ref": "InventoryItem" },
+      "description": "Clinic branch inventory items and batches"
+    },
+    "/prescriptions/{rxId}": {
+      "schema": { "$ref": "Prescription" },
+      "description": "Patient prescriptions and dispensing status"
+    },
+    "/testOrders/{testId}": {
+      "schema": { "$ref": "TestOrder" },
+      "description": "Pathology and laboratory test orders"
+    },
+    "/radiologyOrders/{radId}": {
+      "schema": { "$ref": "RadiologyOrder" },
+      "description": "Radiology and diagnostic imaging orders"
+    },
+    "/administeredItems/{adminId}": {
+      "schema": { "$ref": "AdministeredItem" },
+      "description": "Inpatient and bedside administered consumables"
+    },
+    "/ledgers/{ledgerId}": {
+      "schema": { "$ref": "PatientLedger" },
+      "description": "Patient billing ledgers and payment receipts"
+    },
+    "/transfers/{transferId}": {
+      "schema": { "$ref": "InterBranchTransfer" },
+      "description": "Inter-branch stock transfer orders"
+    },
+    "/encounters/{encounterId}": {
+      "schema": { "$ref": "ClinicalEncounter" },
+      "description": "Doctor clinical consultation records"
+    },
+    "/clinicalProcedures/{procedureId}": {
+      "schema": { "$ref": "ClinicalProcedure" },
+      "description": "Doctor performed clinical procedures and outcome records"
+    },
+    "/wards/{wardId}": {
+      "schema": { "$ref": "ClinicWard" },
+      "description": "Inpatient wards and bed capacities"
+    },
+    "/departments/{deptId}": {
+      "schema": { "$ref": "ClinicDepartment" },
+      "description": "Clinical departments and consultation rooms"
+    },
+    "/pharmacyCarts/{cartId}": {
+      "schema": { "$ref": "PharmacyCart" },
+      "description": "Direct and indirect pharmacy dispensing carts"
+    },
+    "/nursingAdminLogs/{logId}": {
+      "schema": { "$ref": "NursingAdministrationLog" },
+      "description": "Nurse medication administration and bedside care records"
+    },
+    "/auditLogs/{logId}": {
+      "schema": { "$ref": "AuditLog" },
+      "description": "Audit trail logs"
+    },
+    "/availableTests/{testId}": {
+      "schema": { "$ref": "AvailableTest" },
+      "description": "Available pathology and radiology diagnostic tests"
+    },
+    "/otherCharges/{chargeId}": {
+      "schema": { "$ref": "OtherChargeItem" },
+      "description": "Clinic other charges and standard fees catalog"
+    },
+    "/treatmentCharts/{chartId}": {
+      "schema": {
+        "title": "Patient Treatment Chart",
+        "description": "Inpatient medication administration checklist and treatment chart",
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "patientId": { "type": "string" },
+          "clinicId": { "type": "string" },
+          "patientName": { "type": "string" },
+          "patientMrn": { "type": "string" },
+          "status": { "type": "string" },
+          "updatedAt": { "type": "string" }
+        },
+        "required": ["id", "patientId", "clinicId", "status"]
+      },
+      "description": "Inpatient treatment charts and drug administration checklist records"
+    },
+    "/dischargeSummaries/{summaryId}": {
+      "schema": {
+        "title": "Patient Discharge Summary",
+        "description": "Inpatient discharge summary notes, take-home prescriptions, and follow up",
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "patientId": { "type": "string" },
+          "clinicId": { "type": "string" },
+          "patientName": { "type": "string" },
+          "patientMrn": { "type": "string" },
+          "finalDiagnosis": { "type": "string" },
+          "dischargeDate": { "type": "string" },
+          "dischargeCondition": { "type": "string" }
+        },
+        "required": ["id", "patientId", "clinicId", "dischargeDate"]
+      },
+      "description": "Inpatient discharge forms and take-home management records"
+    },
+    "/emailLogs/{logId}": {
+      "schema": {
+        "title": "Email Dispatch Log",
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "clinicId": { "type": "string" },
+          "recipientEmail": { "type": "string" },
+          "subject": { "type": "string" },
+          "type": { "type": "string" },
+          "status": { "type": "string" },
+          "sentAt": { "type": "string" }
+        }
+      },
+      "description": "Verification, approval, and password reset email logs"
+    },
+    "/referrals/{referralId}": {
+      "schema": { "$ref": "PatientReferral" },
+      "description": "Inpatient referrals and inter-hospital patient transfer dossiers"
+    },
+    "/deathCertificates/{certId}": {
+      "schema": { "$ref": "DeathCertificate" },
+      "description": "Official medical certificates of cause of death (MCCD) and deceased dossiers"
+    },
+    "/insurancePolicies/{policyId}": {
+      "schema": { "$ref": "InsurancePolicy" },
+      "description": "Configured insurance policies, available provider names, and billing rules for respective clinics"
+    },
+    "/procedureInventory/{itemId}": {
+      "schema": { "$ref": "ProcedureInventoryItem" },
+      "description": "Master procedure catalog, standard cash costs, and insurance selling prices"
+    },
+    "/dailyExpenditures/{expId}": {
+      "schema": { "$ref": "DailyExpenditure" },
+      "description": "Daily clinic expenditures with itemized lists, quantities, costs, and user/timestamp audit tracking"
+    }
+  }
+}

@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#1e293b"/>
+    </linearGradient>
+    <linearGradient id="crossGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10b981"/>
+      <stop offset="100%" stop-color="#06b6d4"/>
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)"/>
+  <circle cx="256" cy="256" r="210" fill="none" stroke="#0ea5e9" stroke-width="4" stroke-dasharray="8 6" opacity="0.4"/>
+  <!-- Hospital Pulse Line -->
+  <path d="M 60 256 L 150 256 L 175 220 L 200 290 L 225 240 L 240 256" fill="none" stroke="#38bdf8" stroke-width="5" stroke-linecap="round" opacity="0.3"/>
+  <path d="M 272 256 L 285 256 L 300 220 L 325 290 L 350 240 L 365 256 L 452 256" fill="none" stroke="#38bdf8" stroke-width="5" stroke-linecap="round" opacity="0.3"/>
+  <!-- Glowing Healthcare Cross -->
+  <g filter="url(#glow)">
+    <rect x="216" y="106" width="80" height="300" rx="20" fill="url(#crossGrad)"/>
+    <rect x="106" y="216" width="300" height="80" rx="20" fill="url(#crossGrad)"/>
+    <!-- Center white medical heart/cross detail -->
+    <circle cx="256" cy="256" r="18" fill="#ffffff" />
+  </g>
+</svg>
